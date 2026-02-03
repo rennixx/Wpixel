@@ -69,8 +69,8 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
         return [x, y];
       };
 
-      // Ocean background - Google Maps style
-      ctx.fillStyle = "#b3d1ff";
+      // Ocean background - natural light blue
+      ctx.fillStyle = "#87CEEB";  // Sky blue - natural ocean color
       ctx.fillRect(0, 0, width, height);
 
       try {
