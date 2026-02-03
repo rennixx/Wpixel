@@ -22,6 +22,8 @@ yarn.lock
 /.pnp
 .pnp.js
 
+/.claude/
+
 # testing
 /coverage
 # logs
