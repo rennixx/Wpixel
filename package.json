@@ -1,0 +1,36 @@
+{
+  "name": "planetcanvas-3d",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.160.0",
+    "@react-three/fiber": "^8.15.12",
+    "@react-three/drei": "^9.96.1",
+    "@supabase/supabase-js": "^2.39.3",
+    "framer-motion": "^10.18.0",
+    "zustand": "^4.4.7",
+    "openai": "^4.24.1",
+    "date-fns": "^3.0.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@types/three": "^0.160.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4"
+  }
+}
