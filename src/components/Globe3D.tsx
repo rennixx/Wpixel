@@ -54,8 +54,8 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
   useEffect(() => {
     const generateTexture = async () => {
       const canvas = document.createElement("canvas");
-      const width = 4096;
-      const height = 2048;
+      const width = 8192;  // 8K resolution
+      const height = 4096;
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
@@ -116,7 +116,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
 
         // Second pass: draw country borders
         ctx.strokeStyle = "#a0a0a0";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;  // Thicker for 8K
         
         for (const feature of geoData.features) {
           const { geometry } = feature;
@@ -198,15 +198,15 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
           const pop = feature.properties?.POP_EST || 0;
           
           if (largeCountries.has(name)) {
-            fontSize = 32;
+            fontSize = 56;
           } else if (mediumCountries.has(name)) {
-            fontSize = 22;
+            fontSize = 40;
           } else if (pop > 30000000) {
-            fontSize = 18;
+            fontSize = 32;
           } else if (pop > 10000000) {
-            fontSize = 14;
+            fontSize = 24;
           } else if (pop > 1000000) {
-            fontSize = 10;
+            fontSize = 18;
           }
           // Skip very small countries
           
@@ -214,7 +214,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
             // Draw text with outline for readability
             ctx.font = `bold ${fontSize}px Arial, sans-serif`;
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 5;  // Thicker outline for 8K
             ctx.strokeText(name, labelX, labelY);
             ctx.fillStyle = "#333333";
             ctx.fillText(name, labelX, labelY);
@@ -224,7 +224,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
         // Draw ocean labels
         ctx.fillStyle = "#6b95b8";
         ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         
         const drawOceanLabel = (text: string, x: number, y: number, size: number) => {
           ctx.font = `italic ${size}px Georgia, serif`;
@@ -232,12 +232,12 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
           ctx.fillText(text, x, y);
         };
         
-        drawOceanLabel("PACIFIC OCEAN", width * 0.12, height * 0.52, 36);
-        drawOceanLabel("PACIFIC OCEAN", width * 0.85, height * 0.52, 36);
-        drawOceanLabel("ATLANTIC OCEAN", width * 0.37, height * 0.48, 32);
-        drawOceanLabel("INDIAN OCEAN", width * 0.72, height * 0.62, 32);
-        drawOceanLabel("ARCTIC OCEAN", width * 0.5, height * 0.06, 28);
-        drawOceanLabel("SOUTHERN OCEAN", width * 0.5, height * 0.92, 28);
+        drawOceanLabel("PACIFIC OCEAN", width * 0.12, height * 0.52, 64);
+        drawOceanLabel("PACIFIC OCEAN", width * 0.85, height * 0.52, 64);
+        drawOceanLabel("ATLANTIC OCEAN", width * 0.37, height * 0.48, 56);
+        drawOceanLabel("INDIAN OCEAN", width * 0.72, height * 0.62, 56);
+        drawOceanLabel("ARCTIC OCEAN", width * 0.5, height * 0.06, 48);
+        drawOceanLabel("SOUTHERN OCEAN", width * 0.5, height * 0.92, 48);
 
       } catch (error) {
         console.error("Failed to load GeoJSON:", error);
