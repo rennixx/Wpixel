@@ -1,5 +1,22 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
 
+# npm package lock
+package-lock.json
+
+# yarn lock file
+yarn.lock
+
+# build artifacts
+/dist
+/public
+
+# coverage reports
+/coverage/lcov.info
 # dependencies
 /node_modules
 /.pnp
@@ -7,7 +24,13 @@
 
 # testing
 /coverage
+# logs
+/logs
+*.log
 
+# IDE files
+/.idea/
+/.vscode/
 # next.js
 /.next/
 /out/
