@@ -48,7 +48,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
   const [hovered, setHovered] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState<{ lat: number; long: number } | null>(null);
   const [earthTexture, setEarthTexture] = useState<THREE.Texture | null>(null);
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   
   // Generate Earth texture from local GeoJSON
   useEffect(() => {
@@ -252,19 +252,25 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
         ctx.fill();
       }
 
-      // Create texture from canvas
+      // Create texture from canvas with high quality settings
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      // Use maximum anisotropy from the renderer
+      const maxAnisotropy = gl.capabilities.getMaxAnisotropy();
+      texture.anisotropy = maxAnisotropy;
+      texture.generateMipmaps = true;
       texture.needsUpdate = true;
       
-      console.log("Earth texture generated from GeoJSON");
+      console.log("Earth texture generated (8K) with anisotropy:", maxAnisotropy);
       setEarthTexture(texture);
     };
 
     generateTexture();
-  }, []);
+  }, [gl]);
   
   // Raycaster for click detection
   const raycaster = useRef(new THREE.Raycaster());
@@ -356,7 +362,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
         }}
         onDoubleClick={handleDoubleClick}
       >
-        <sphereGeometry args={[1, 128, 128]} />
+        <sphereGeometry args={[1, 256, 256]} />
         <meshStandardMaterial 
           key={earthTexture ? "textured" : "plain"}
           map={earthTexture}
@@ -451,10 +457,10 @@ function CameraController({ isDrawingMode }: { isDrawingMode: boolean }) {
       enablePan={false}
       enableZoom={!isDrawingMode}
       enableRotate={!isDrawingMode}
-      minDistance={1.2}
-      maxDistance={4}
+      minDistance={1.05}
+      maxDistance={5}
       rotateSpeed={0.5}
-      zoomSpeed={0.5}
+      zoomSpeed={0.8}
       enableDamping
       dampingFactor={0.05}
     />
@@ -489,8 +495,18 @@ export default function Globe3D({ onRegionClick, selectedRegion, isDrawingMode }
   return (
     <Canvas
       camera={{ position: [0, 0, 3], fov: 45 }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ 
+        antialias: true, 
+        alpha: true,
+        powerPreference: "high-performance",
+        pixelRatio: Math.min(window.devicePixelRatio, 2)
+      }}
       style={{ background: "#0a0a0a" }}
+      onCreated={({ gl }) => {
+        // Enable maximum anisotropic filtering
+        const maxAnisotropy = gl.capabilities.getMaxAnisotropy();
+        console.log("Max anisotropy:", maxAnisotropy);
+      }}
     >
       <Suspense fallback={<FallbackEarthTexture />}>
         <Earth
