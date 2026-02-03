@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024" viewBox="0 0 2048 1024">
+  <defs>
+    <linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a4a7a"/>
+      <stop offset="50%" style="stop-color:#0d3a5c"/>
+      <stop offset="100%" style="stop-color:#1a4a7a"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d5a3d"/>
+      <stop offset="100%" style="stop-color:#1a3d2a"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Ocean background -->
+  <rect width="2048" height="1024" fill="url(#ocean)"/>
+  
+  <!-- Simplified continents -->
+  <!-- North America -->
+  <path d="M200,200 Q300,180 400,220 L450,350 Q400,450 350,400 L250,380 Q180,320 200,200" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- South America -->
+  <path d="M350,500 Q400,480 420,550 L400,700 Q350,750 320,700 L300,600 Q320,520 350,500" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- Europe -->
+  <path d="M900,180 Q1000,160 1050,200 L1020,280 Q950,300 900,260 L900,180" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- Africa -->
+  <path d="M950,320 Q1050,300 1100,380 L1080,550 Q1000,620 950,580 L920,450 Q930,360 950,320" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- Asia -->
+  <path d="M1100,150 Q1400,100 1600,180 L1650,350 Q1500,400 1300,350 L1150,280 Q1080,220 1100,150" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- Australia -->
+  <path d="M1500,550 Q1600,520 1650,560 L1620,650 Q1550,680 1500,640 L1500,550" fill="url(#land)" opacity="0.8"/>
+  
+  <!-- Grid lines for visual reference -->
+  <g stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none">
+    <!-- Latitude lines -->
+    <line x1="0" y1="256" x2="2048" y2="256"/>
+    <line x1="0" y1="512" x2="2048" y2="512"/>
+    <line x1="0" y1="768" x2="2048" y2="768"/>
+    <!-- Longitude lines -->
+    <line x1="512" y1="0" x2="512" y2="1024"/>
+    <line x1="1024" y1="0" x2="1024" y2="1024"/>
+    <line x1="1536" y1="0" x2="1536" y2="1024"/>
+  </g>
+</svg>
