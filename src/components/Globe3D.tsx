@@ -221,7 +221,7 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
           }
         }
 
-        // Draw ocean labels
+        // Draw ocean labels - positioned at center of each ocean
         ctx.fillStyle = "#6b95b8";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 4;
@@ -232,12 +232,17 @@ function Earth({ onRegionClick, selectedRegion, isDrawingMode }: EarthProps) {
           ctx.fillText(text, x, y);
         };
         
+        // Pacific Ocean (two labels - west and east sides)
         drawOceanLabel("PACIFIC OCEAN", width * 0.12, height * 0.52, 64);
-        drawOceanLabel("PACIFIC OCEAN", width * 0.85, height * 0.52, 64);
-        drawOceanLabel("ATLANTIC OCEAN", width * 0.37, height * 0.48, 56);
-        drawOceanLabel("INDIAN OCEAN", width * 0.72, height * 0.62, 56);
-        drawOceanLabel("ARCTIC OCEAN", width * 0.5, height * 0.06, 48);
-        drawOceanLabel("SOUTHERN OCEAN", width * 0.5, height * 0.92, 48);
+        drawOceanLabel("PACIFIC OCEAN", width * 0.88, height * 0.52, 64);
+        // Atlantic Ocean - centered between Americas and Europe/Africa
+        drawOceanLabel("ATLANTIC OCEAN", width * 0.42, height * 0.42, 56);
+        // Indian Ocean - between Africa, Asia, and Australia  
+        drawOceanLabel("INDIAN OCEAN", width * 0.72, height * 0.60, 56);
+        // Arctic Ocean - top center
+        drawOceanLabel("ARCTIC OCEAN", width * 0.5, height * 0.07, 48);
+        // Southern Ocean - bottom center
+        drawOceanLabel("SOUTHERN OCEAN", width * 0.5, height * 0.90, 48);
 
       } catch (error) {
         console.error("Failed to load GeoJSON:", error);
