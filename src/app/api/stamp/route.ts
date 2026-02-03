@@ -177,9 +177,9 @@ export async function GET(request: NextRequest) {
 
     // Optional location filter
     const latMin = searchParams.get('lat_min')
-    latMax = searchParams.get('lat_max')
-    longMin = searchParams.get('long_min')
-    longMax = searchParams.get('long_max')
+    const latMax = searchParams.get('lat_max')
+    const longMin = searchParams.get('long_min')
+    const longMax = searchParams.get('long_max')
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL || '',

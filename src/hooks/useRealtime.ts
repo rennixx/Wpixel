@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import type { Drawing, Activity, Bounds } from '@/types/drawing'
 
 interface UseRealtimeDrawingsOptions {
@@ -20,10 +20,21 @@ export function useRealtimeDrawings(options: UseRealtimeDrawingsOptions = {}) {
   const [drawings, setDrawings] = useState<Drawing[]>([])
   const [latestDrawing, setLatestDrawing] = useState<Drawing | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
     if (!enabled) return
+
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Supabase not configured. Realtime features disabled.')
+      return
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const channelRefs: ReturnType<typeof supabase.channel>[] = []
 
     // Subscribe to new drawings
     const channel = supabase
@@ -45,19 +56,24 @@ export function useRealtimeDrawings(options: UseRealtimeDrawingsOptions = {}) {
         setIsConnected(status === 'SUBSCRIBED')
       })
 
-    channelRef.current = channel
+    channelRefs.push(channel)
 
     // Fetch existing drawings on mount
     fetchDrawings()
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-      }
+      channelRefs.forEach((ch) => supabase.removeChannel(ch))
     }
   }, [enabled])
 
   const fetchDrawings = useCallback(async () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) return
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
     const { data, error } = await supabase
       .from('drawings')
       .select('*')
@@ -88,6 +104,17 @@ export function useActivityFeed(options: UseActivityFeedOptions = {}) {
   useEffect(() => {
     if (!enabled) return
 
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Supabase not configured. Activity feed disabled.')
+      return
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
     // Subscribe to new activities
     const channel = supabase
       .channel('activity')
@@ -116,6 +143,13 @@ export function useActivityFeed(options: UseActivityFeedOptions = {}) {
   }, [enabled, limit])
 
   const fetchActivities = useCallback(async () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) return
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
     const { data, error } = await supabase
       .from('activity')
       .select('*')
@@ -139,6 +173,17 @@ export function useRegionalDrawings(bounds: Bounds | null, options: UseRealtimeD
 
   useEffect(() => {
     if (!enabled || !bounds) return
+
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Supabase not configured. Regional drawings disabled.')
+      return
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
     // Fetch drawings within the bounding box
     const fetchRegionalDrawings = async () => {
@@ -198,6 +243,17 @@ export function useRealtimeStatus() {
   const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting')
 
   useEffect(() => {
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setStatus('disconnected')
+      return
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
     // Check connection status periodically
     const checkConnection = () => {
       const channel = supabase
@@ -205,10 +261,14 @@ export function useRealtimeStatus() {
         .subscribe((subStatus) => {
           if (subStatus === 'SUBSCRIBED') {
             setStatus('connected')
-          } else if (subStatus === 'SUBSCRIPTION_RETRY') {
-            setStatus('connecting')
-          } else {
+          } else if (
+            subStatus === 'TIMED_OUT' ||
+            subStatus === 'CLOSED' ||
+            subStatus === 'CHANNEL_ERROR'
+          ) {
             setStatus('disconnected')
+          } else {
+            setStatus('connecting')
           }
         })
 

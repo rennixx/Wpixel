@@ -2,7 +2,8 @@
  * Globe utility functions for coordinate conversions and calculations
  */
 
-import type { Bounds, CoordinateUV, CoordinateLatLong } from '@/types/globe'
+import type { Bounds } from '@/types/drawing'
+import type { CoordinateUV, CoordinateLatLong } from '@/types/globe'
 
 /**
  * Convert geographic coordinates to texture UV coordinates

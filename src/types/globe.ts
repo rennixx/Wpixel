@@ -4,9 +4,15 @@
 
 import * as THREE from 'three'
 
+export type GlobeViewStyle = 'map' | 'satellite' | 'hybrid'
+
 export interface Globe3DProps {
   onRegionSelect?: (lat: number, long: number) => void
   drawingsTexture?: THREE.Texture
+  viewStyle?: GlobeViewStyle
+  showAtmosphere?: boolean
+  showStars?: boolean
+  autoRotate?: boolean
 }
 
 export interface CoordinateUV {
@@ -24,10 +30,18 @@ export interface GlobeState {
   autoRotate: boolean
   zoomLevel: number
   selectedRegion: CoordinateLatLong | null
+  viewStyle: GlobeViewStyle
 }
 
 export interface RaycastResult {
   point: THREE.Vector3
   uv: CoordinateUV
   latLong: CoordinateLatLong
+}
+
+export interface CityMarker {
+  name: string
+  lat: number
+  long: number
+  population?: number
 }

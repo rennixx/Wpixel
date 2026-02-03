@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { getUserId } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // Rate limiting store (in production, use Redis or database)
 const enhanceRateLimit = new Map<string, { count: number; resetTime: number }>()
@@ -48,12 +48,9 @@ function checkRateLimit(userId: string): { allowed: boolean; remaining: number; 
   return { allowed: true, remaining: maxEnhancementsPerDay - userLimit.count }
 }
 
-// Helper: Convert base64 to File
-function base64ToFile(base64Data: string, filename: string = 'image.png'): File {
-  const base64String = base64Data.replace(/^data:image\/png;base64,/, '')
-  const buffer = Buffer.from(base64String, 'base64')
-  const blob = new Blob([buffer], { type: 'image/png' })
-  return new File([blob], filename, { type: 'image/png' })
+// Helper: Generate a simple guest ID
+function getGuestId(): string {
+  return `guest_${Math.random().toString(36).substring(2, 15)}`
 }
 
 export async function POST(request: NextRequest) {
@@ -67,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const { imageData, style } = await request.json()
+    const { imageData, style, userId: clientUserId } = await request.json()
 
     // Validate input
     if (!imageData) {
@@ -86,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user ID
-    const userId = await getUserId()
+    const userId = clientUserId || getGuestId()
 
     // Check rate limit
     const rateLimit = checkRateLimit(userId)
@@ -107,43 +104,66 @@ export async function POST(request: NextRequest) {
     })
 
     // Build enhancement prompt
-    const prompt = stylePrompts[style || 'none'] || stylePrompts.none
+    const basePrompt = stylePrompts[style || 'none'] || stylePrompts.none
+    const prompt = `${basePrompt} Maintain the original subject matter and composition.`
 
-    // Convert base64 to File
-    const imageFile = base64ToFile(imageData)
-
-    // Call DALL-E 2 for image editing (DALL-E 3 doesn't support edits)
-    // Note: DALL-E 2 edits require a mask, so we'll use generations instead
-    // For MVP, we'll use image generations with the image as reference
-    console.log('Calling OpenAI API for enhancement...')
-
-    // For a true enhancement, we need to use the Edits API which requires a mask
-    // Since we don't have a mask, we'll use a workaround:
-    // We'll use the image generation with the original as a base
+    // For MVP, we'll use DALL-E 2 image variations with prompt editing
+    // This is simpler than the edit API which requires a mask
     try {
-      // Using DALL-E 2 Edit API with transparent mask
-      // Create a simple transparent mask (entire image editable)
-      const canvas = require('canvas')
-      const maskCanvas = canvas.createCanvas(1024, 1024)
-      const ctx = maskCanvas.getContext('2d')
+      // Upload the image to a temporary location for OpenAI to access
+      // First, save to Supabase storage
+      const base64Data = imageData.replace(/^data:image\/png;base64,/, '')
+      const buffer = Buffer.from(base64Data, 'base64')
 
-      // Create transparent mask (RGBA with alpha=0 for editable areas)
-      // For full editability, we'll use a transparent PNG
-      const maskBuffer = maskCanvas.toBuffer('image/png')
-      const maskFile = new File([maskBuffer], 'mask.png', { type: 'image/png' })
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+      )
 
+      const timestamp = Date.now()
+      const filename = `temp/${userId}/${timestamp}.png`
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('drawings')
+        .upload(filename, buffer, {
+          contentType: 'image/png',
+          cacheControl: '3600',
+          upsert: true,
+        })
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError)
+        // Continue with base64 approach
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('drawings')
+        .getPublicUrl(filename)
+
+      // Use OpenAI's image generation with the image as reference
+      // Note: DALL-E 2 Edits API requires both image and mask
+      // For MVP, we'll use a simpler approach with image variations
+      // In production, you would create a proper transparent mask
+
+      // Since DALL-E 2 edits require a mask file, we'll create a simple approach
+      // Use the image as input with prompt for variations
       const response = await openai.images.edit({
-        image: imageFile,
-        mask: maskFile,
+        image: Buffer.from(base64Data, 'base64') as unknown as File,
         prompt: prompt,
         n: 1,
         size: '1024x1024',
       })
 
+      if (!response.data || response.data.length === 0) {
+        throw new Error('No enhanced image returned')
+      }
+
       const enhancedImageUrl = response.data[0].url
 
       if (!enhancedImageUrl) {
-        throw new Error('No enhanced image returned')
+        throw new Error('No enhanced image URL returned')
       }
 
       return NextResponse.json({
@@ -156,8 +176,7 @@ export async function POST(request: NextRequest) {
     } catch (openaiError: any) {
       console.error('OpenAI API error:', openaiError)
 
-      // Fallback: If edit fails, try generation
-      // Note: This is a simplified approach for MVP
+      // Return detailed error
       return NextResponse.json(
         {
           error: 'AI enhancement temporarily unavailable',
@@ -179,7 +198,10 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check enhancement quota
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId()
+    // Get user ID from query or generate guest ID
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get('userId') || getGuestId()
+
     const userLimit = enhanceRateLimit.get(userId)
     const now = Date.now()
     const dayInMs = 24 * 60 * 60 * 1000

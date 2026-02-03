@@ -9,6 +9,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Sphere, Stars } from '@react-three/drei'
 import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
+import type { ThreeEvent } from '@react-three/fiber'
 import type { Globe3DProps } from '@/types/globe'
 import { cartesianToLatLong } from '@/lib/globe-utils'
 
@@ -51,8 +52,7 @@ function EarthSphere({
 
   // Handle mouse move for hover effect
   const handlePointerMove = useCallback(
-    (event: THREE.Event) => {
-      event.stopPropagation()
+    (event: ThreeEvent<PointerEvent>) => {
       setHovered(true)
     },
     []
@@ -64,7 +64,7 @@ function EarthSphere({
 
   // Handle click to select region
   const handleClick = useCallback(
-    (event: THREE.Event) => {
+    (event: ThreeEvent<MouseEvent>) => {
       event.stopPropagation()
 
       if (!meshRef.current || !onRegionSelect) return
