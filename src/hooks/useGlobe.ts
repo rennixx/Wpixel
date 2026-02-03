@@ -5,10 +5,11 @@
  */
 
 import { useState, useCallback, useRef } from 'react'
-import type { CoordinateLatLong, GlobeState } from '@/types/globe'
+import type { CoordinateLatLong, GlobeState, GlobeViewStyle } from '@/types/globe'
 
 interface UseGlobeOptions {
   onRegionSelect?: (lat: number, long: number) => void
+  initialViewStyle?: GlobeViewStyle
 }
 
 export function useGlobe(options: UseGlobeOptions = {}) {
@@ -17,6 +18,7 @@ export function useGlobe(options: UseGlobeOptions = {}) {
     autoRotate: false,
     zoomLevel: 10,
     selectedRegion: null,
+    viewStyle: options.initialViewStyle || 'map',
   })
 
   const cameraRef = useRef<THREE.Camera | null>(null)
